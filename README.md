@@ -31,7 +31,7 @@ The system follows a containerized microservices pattern:
 
 * Azure Functions Core Tools
 
-Deployment Steps
+Deployment Steps into docker
 
 1. Build the Image:
 
@@ -53,8 +53,125 @@ Deployment Steps
    ```
     minikube service resume-matcher-service --url
    ```
+Deployment to the azure cloud
+
+## 1. Azure Container Registry (ACR) Deployment
+
+The first step is to move the locally built Docker image (`resume-matcher-v1`) into the Azure cloud. We tagged the local image for our Azure registry, authenticated, and pushed the image.
+
+**Tag the local image for the Azure registry:**
+```
+docker tag resume-matcher-v1 polimiregistry.azurecr.io/resume-matcher:v1
+```
+**Authenticate with ACR:**
+```
+docker login polimiregistry.azurecr.io -u polimiregistry -p <ACR_PASSWORD>
+```
+**Push the image to the cloud:**
+```
+docker push polimiregistry.azurecr.io/resume-matcher:v1
+```
+
+**To obtain credentials of ACR:**
+```
+az acr credential show
+```
+## 2. Provisioning the Cloud Infrastructure
+
+Instead of manually configuring a Kubernetes cluster, we utilized Azure Container Apps. First, we created the managed environment (the underlying network and cluster), and then deployed the Container App with built-in KEDA autoscaling rules (scaling from 1 to 10 replicas).
+
+### Create the Azure Container Apps Environment
+
+```
+
+az containerapp env create \
+  --name polimi-env \
+  --resource-group faas_project \
+  --location francecentral
+```
+### Create and deploy the Container App
+```
+az containerapp create \
+  --name resumematcher-app \
+  --resource-group faas_project \
+  --environment polimi-env \
+  --image polimiregistry.azurecr.io/resume-matcher:v1 \
+  --registry-server polimiregistry.azurecr.io \
+  --registry-username polimiregistry \
+  --registry-password <ACR_PASSWORD> \
+  --ingress external \
+  --target-port 80 \
+  --min-replicas 1 \
+  --max-replicas 10
+```
+## 3. Deploying Code Updates (v2)
+After enhancing the NLP model, we needed to deploy the new code without causing downtime. We achieved this by building a v2 image and issuing an update command to Azure, which safely rolled out the new containers.
+
+### Build and push the new image version
+```
+docker build --platform linux/amd64 -t polimiregistry.azurecr.io/resume-matcher:v2 .
+docker push polimiregistry.azurecr.io/resume-matcher:v2
+```
+### Update the running Container App with the new image
+```
+az containerapp update \
+  --name resumematcher-app \
+  --resource-group faas_project \
+  --image polimiregistry.azurecr.io/resume-matcher:v2
+  ```
+### Test run of docker image:
+```
+curl -X POST https://<FQDN>/api/match \
+  -H "Content-Type: application/json" \
+  -d '{"resume": "Software engineer with 5 years of experience in Python, Azure, and Docker.", "jd": "Looking for a backend developer skilled in Python and cloud infrastructure."}'
+```
+### Our FQDN: 
+```
+resumematcher-app.redsmoke-cd88e19a.francecentral.azurecontainerapps.io
+```
+## 4. Performance Benchmarking & Evaluation
+ 
 
 📊 Performance Evaluation Metrics
+
+We utilized Apache JMeter to simulate concurrent users and evaluate the system's reliability and scalability. The evaluation focused on three primary test scenarios to analyze the behavior of the FaaS architecture.
+
+### Installing jmeter to mac
+```
+brew install jmeter 
+```
+### Open the software
+```
+jmeter
+```
+Step 1 
+1: Create the "Users" (Thread Group)
+A "Thread Group" is JMeter's way of saying "a group of users."
+Look at the left sidebar. Right-click on the beaker icon named FaaS testing attempt 1.
+Hover over Add > Threads (Users) > and click Thread Group.
+Click on the new Thread Group that appears in the left sidebar.
+In the main window, set these values to run a safe baseline test:
+Number of Threads (users): 10
+Ramp-up period (seconds): 10
+Loop Count: 1 (This tells JMeter to send 10 users to your API, spreading them out over 10 seconds. We will increase this to 500 later for the stress test!)
+Step 2: Set up the API Call (HTTP Request)
+Now we have to tell those users what to do.
+Right-click on your new Thread Group in the left sidebar.
+Hover over Add > Sampler > and click HTTP Request.
+Click on the new HTTP Request in the left sidebar.
+Fill in the main window exactly like this:
+Protocol: https
+Server Name or IP: Paste your Azure FQDN here (e.g., resumematcher-app.proudriver-abcd123.northeurope.azurecontainerapps.io). Do NOT include https:// in this box!
+HTTP Request Method: Change the dropdown from GET to POST.
+Path: /api/match
+Look right below the Path box and click the Body Data tab.
+Paste your test JSON directly into that big empty text area:
+JSON
+{
+  "resume": "Software engineer with 5 years of experience in Python, Azure, and Docker. Strong background in FaaS and system reliability.",
+  "jd": "Looking for a backend developer skilled in Python, cloud infrastructure, and building scalable API endpoints."
+}
+
 
 As part of our research, we are supposed to evaluate the following metrics:
 
@@ -69,6 +186,7 @@ As part of our research, we are supposed to evaluate the following metrics:
 
 
 * Reliability
+
 
 🛠 Troubleshooting & Insights
 
