@@ -144,11 +144,11 @@ brew install jmeter
 ```
 jmeter
 ```
-# JMeter Performance Testing Setup
+## JMeter Performance Testing Setup
 
 Follow these steps to configure your JMeter test plan for the Azure FaaS application. We will start with a safe baseline test before scaling up to a full stress test.
 
-## Step 1: Create the "Users" (Thread Group)
+### Step 1: Create the "Users" (Thread Group)
 
 A "Thread Group" is JMeter's way of representing a group of users.
 
@@ -164,20 +164,20 @@ A "Thread Group" is JMeter's way of representing a group of users.
 
 ---
 
-## Step 2: Set up the API Call (HTTP Request)
+### Step 2: Set up the API Call (HTTP Request)
 
 Next, we need to instruct the simulated users on what specific actions to perform.
 
-1. **Right-click** on your new Thread Group in the left sidebar.
+1. **Right-click** on a new Thread Group in the left sidebar.
 2. Hover over **Add** > **Sampler** > and click **HTTP Request**.
 3. Click on the new **HTTP Request** in the left sidebar.
 4. In the main window, configure the exact details of the request:
    * **Protocol:** `https`
-   * **Server Name or IP:** Paste your Azure FQDN here (e.g., `resumematcher-app.proudriver-abcd123.northeurope.azurecontainerapps.io`). *Note: Do NOT include `https://` in this box!*
+   * **Server Name or IP:** Paste the Azure FQDN here (e.g., `resumematcher-app.proudriver-abcd123.northeurope.azurecontainerapps.io`). *Note: Do NOT include `https://` in this box!*
    * **HTTP Request Method:** Change the dropdown from `GET` to `POST`.
    * **Path:** `/api/match`
 5. Look below the Path box and click the **Body Data** tab.
-6. Paste your test JSON directly into the empty text area:
+6. Paste this test JSON directly into the empty text area:
 
 ```
 JSON
@@ -186,7 +186,7 @@ JSON
   "jd": "Looking for a backend developer skilled in Python, cloud infrastructure, and building scalable API endpoints."
 }
 ```
-
+note: to  be updated...
 
 As part of our research, we are supposed to evaluate the following metrics:
 
@@ -211,6 +211,6 @@ As part of our research, we are supposed to evaluate the following metrics:
 
 👥 Team
 
-* **Member 1**: [Kavini Pathagamage](https://github.com/kavikushi0207): Infrastructure setup, Dockerization, K8s Orchestration, and CI/CD basics, Analyzing test results
+* **Member 1**: [Kavini Pathagamage](https://github.com/kavikushi0207): Infrastructure setup, Dockerization, K8s Orchestration, CI/CD basics, Azure deployment and test bed setup, Analyzing test results
 
 * **Member 2**: [Taniya Afreen](https://github.com/taanyaafreen): Logic/Model development, Test dataset preparation, and Performance experiment design, Analyzing test results
