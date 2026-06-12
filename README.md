@@ -144,33 +144,48 @@ brew install jmeter
 ```
 jmeter
 ```
-Step 1 
-1: Create the "Users" (Thread Group)
-A "Thread Group" is JMeter's way of saying "a group of users."
-Look at the left sidebar. Right-click on the beaker icon named FaaS testing attempt 1.
-Hover over Add > Threads (Users) > and click Thread Group.
-Click on the new Thread Group that appears in the left sidebar.
-In the main window, set these values to run a safe baseline test:
-Number of Threads (users): 10
-Ramp-up period (seconds): 10
-Loop Count: 1 (This tells JMeter to send 10 users to your API, spreading them out over 10 seconds. We will increase this to 500 later for the stress test!)
-Step 2: Set up the API Call (HTTP Request)
-Now we have to tell those users what to do.
-Right-click on your new Thread Group in the left sidebar.
-Hover over Add > Sampler > and click HTTP Request.
-Click on the new HTTP Request in the left sidebar.
-Fill in the main window exactly like this:
-Protocol: https
-Server Name or IP: Paste your Azure FQDN here (e.g., resumematcher-app.proudriver-abcd123.northeurope.azurecontainerapps.io). Do NOT include https:// in this box!
-HTTP Request Method: Change the dropdown from GET to POST.
-Path: /api/match
-Look right below the Path box and click the Body Data tab.
-Paste your test JSON directly into that big empty text area:
+# JMeter Performance Testing Setup
+
+Follow these steps to configure your JMeter test plan for the Azure FaaS application. We will start with a safe baseline test before scaling up to a full stress test.
+
+## Step 1: Create the "Users" (Thread Group)
+
+A "Thread Group" is JMeter's way of representing a group of users.
+
+1. Look at the left sidebar and **right-click** on the beaker icon named `FaaS testing attempt 1`.
+2. Hover over **Add** > **Threads (Users)** > and click **Thread Group**.
+3. Click on the new **Thread Group** that appears in the left sidebar.
+4. In the main window, set the following values to run a safe baseline test:
+   * **Number of Threads (users):** `10`
+   * **Ramp-up period (seconds):** `10`
+   * **Loop Count:** `1` 
+   
+   *(Note: This configures JMeter to send 10 users to the API spread evenly over 10 seconds. We will increase this to 500 later for the stress test.)*
+
+---
+
+## Step 2: Set up the API Call (HTTP Request)
+
+Next, we need to instruct the simulated users on what specific actions to perform.
+
+1. **Right-click** on your new Thread Group in the left sidebar.
+2. Hover over **Add** > **Sampler** > and click **HTTP Request**.
+3. Click on the new **HTTP Request** in the left sidebar.
+4. In the main window, configure the exact details of the request:
+   * **Protocol:** `https`
+   * **Server Name or IP:** Paste your Azure FQDN here (e.g., `resumematcher-app.proudriver-abcd123.northeurope.azurecontainerapps.io`). *Note: Do NOT include `https://` in this box!*
+   * **HTTP Request Method:** Change the dropdown from `GET` to `POST`.
+   * **Path:** `/api/match`
+5. Look below the Path box and click the **Body Data** tab.
+6. Paste your test JSON directly into the empty text area:
+
+```
 JSON
 {
   "resume": "Software engineer with 5 years of experience in Python, Azure, and Docker. Strong background in FaaS and system reliability.",
   "jd": "Looking for a backend developer skilled in Python, cloud infrastructure, and building scalable API endpoints."
 }
+```
 
 
 As part of our research, we are supposed to evaluate the following metrics:
